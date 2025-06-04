@@ -3,6 +3,13 @@ import config from '../config/config';
 
 const API_BASE_URL = config.API_BASE_URL;
 
+// Debug logging - this will help you see what URL is being used
+console.log('🔧 API Configuration:', {
+  NODE_ENV: process.env.NODE_ENV,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+  API_BASE_URL: API_BASE_URL
+});
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

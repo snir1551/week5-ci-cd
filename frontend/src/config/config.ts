@@ -5,7 +5,7 @@ const config = {
   },
   production: {
     // Production backend URL from Render
-    API_BASE_URL: process.env.REACT_APP_API_URL || 'https://week5-ci-cd-jjqo.onrender.com'
+    API_BASE_URL: process.env.REACT_APP_API_URL || 'https://week5-ci-cd-jjqo.onrender.com/api'
   }
 };
 

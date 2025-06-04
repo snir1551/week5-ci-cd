@@ -14,9 +14,15 @@ function App() {
 
   const checkServerHealth = async () => {
     try {
-      await apiService.healthCheck();
+      console.log('🔍 Checking server health...');
+      const response = await apiService.healthCheck();
+      console.log('✅ Server health check successful:', response.data);
       setServerStatus('Connected');
     } catch (error) {
+      console.error('❌ Server health check failed:', error);
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+      }
       setServerStatus('Disconnected');
     }
   };
