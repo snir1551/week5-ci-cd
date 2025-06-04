@@ -32,7 +32,7 @@ jobs:
         run: |
           cd backend
           npm install
-          npm test > test-results.log
+          npm test 
 
   build:
     runs-on: ubuntu-latest
@@ -65,14 +65,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-build-${{ matrix.node-version }}
-          path: backend/*.log
+          path: backend/
 
       - name: Upload Frontend Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build-${{ matrix.node-version }}
-          path: frontend/build/*.log
-
+          path: frontend/build
+          
 
 
 
