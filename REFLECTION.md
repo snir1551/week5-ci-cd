@@ -8,5 +8,6 @@
 
 ## How would you improve your current pipeline for a production-grade project?
 
-   1. Create separate YAML files for small deployment jobs and combine them into one file for full deployment. This way, I can choose to deploy only the backend, only the frontend, or both.
+   1. Create separate YAML files for small deployment jobs and combine them into one file for full deployment. <br />
+      This way, I can choose to deploy only the backend, only the frontend, or both.
 
