@@ -39,20 +39,20 @@ jobs:
           
 
 
-    test:    
-        runs-on: ubuntu-latest
+    # test:    
+    #     runs-on: ubuntu-latest
 
-    build:
-        runs-on: ubuntu-latest
+    # build:
+    #     runs-on: ubuntu-latest
         
-    upload_artifacts:
-        runs-on: ubuntu-latest
+    # upload_artifacts:
+    #     runs-on: ubuntu-latest
 
-    deploy:
-        runs-on: ubuntu-latest
+    # deploy:
+    #     runs-on: ubuntu-latest
 
-    notify:
-        runs-on: ubuntu-latest    
+    # notify:
+    #     runs-on: ubuntu-latest    
 
 
      
