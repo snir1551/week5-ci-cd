@@ -1,7 +1,6 @@
 import js from '@eslint/js';
 
-export default [
-  js.configs.recommended,
+module.exports = [
   {
     languageOptions: {
       ecmaVersion: 2022,

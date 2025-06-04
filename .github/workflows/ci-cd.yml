@@ -44,14 +44,14 @@ jobs:
           cd backend
           npm install
           npm install eslint@^8.57.0 --save-dev
-          npx eslint . --ext .js,.jsx,.ts,.tsx
+          npx eslint .
       
       - name: Lint Frontend Code
         run: |
           cd frontend
-          npm install
+          npm install  
           npm install eslint@^8.57.0 --save-dev
-          npx eslint . --ext .js,.jsx,.ts,.tsx
+          npx eslint .
 
 
 
