@@ -58,6 +58,9 @@
         node-version: [18, 20]
     ```
 
+    ![image](https://github.com/user-attachments/assets/fceea10d-0d90-4c6c-a56d-8705ba67ed06)
+
+
 ### 6. **Artifact Upload**
 - **Requirement:** Configure artifact upload at the end of the build process.
 - **Implementation:**  
@@ -74,6 +77,9 @@
         name: frontend-build-${{ matrix.node-version }}
         path: frontend/build
     ```
+
+    ![image](https://github.com/user-attachments/assets/3bff3fa7-9774-4e30-bbb0-253337776dc9)
+
 
 ### 7. **GitHub Secrets**
 - **Requirement:** Use GitHub Secrets to handle sensitive values (e.g., deployment keys, tokens).
@@ -92,6 +98,9 @@
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORDBOT }}
     ```
+
+    ![image](https://github.com/user-attachments/assets/8cba9f1f-00da-4d39-9b1f-7c61392e1e0e)
+
 
 ### 8. **Slack/Discord Notifications**
 - **Requirement:** Add Slack or Discord notifications in case of pipeline failure or success.
