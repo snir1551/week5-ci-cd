@@ -14,7 +14,7 @@ function App() {
 
   const checkServerHealth = async () => {
     try {
-      const response = await apiService.healthCheck();
+      await apiService.healthCheck();
       setServerStatus('Connected');
     } catch (error) {
       setServerStatus('Disconnected');
