@@ -61,10 +61,24 @@ jobs:
           npm install
           npm run build
 
-          
-      
+      - name: Upload Backend Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend/
 
-  
+      - name: Upload Frontend Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
+
+
+
+
+
+
+
 
 
 
