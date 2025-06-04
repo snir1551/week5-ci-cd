@@ -16,15 +16,20 @@ export default [
         module: 'writable',
         require: 'readonly',
         global: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly'
       }
     },
     rules: {
       'no-unused-vars': 'warn',
       'no-console': 'off',
       'semi': ['error', 'always'],
-      'quotes': ['error', 'single']
+      'quotes': ['error', 'single'],
+      'no-undef': 'error'
     },
     files: ['**/*.js'],
-    ignores: ['node_modules/**', 'dist/**']
+    ignores: ['node_modules/**', 'dist/**', 'tests/**']
   }
 ];
