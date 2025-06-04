@@ -11,48 +11,45 @@ on:
 
 
 jobs:
-    lint:
-        runs-on: ubuntu-latest
+  lint:
+    runs-on: ubuntu-latest
     
-        steps:
-            
-           - name: Checkout Code
-             uses: actions/checkout@v4
-           
-           - name: Setup Node.js
-             uses: actions/setup-node@v4
-             with:
-              node-version: '18'
-              cache: 'npm'  
-
-           - name: Lint Backend Code
-             run: |
-                cd backend
-                npm install
-                npx eslint . --ext .js,.jsx,.ts,.tsx
-
-           - name: Lint Frontend Code
-             run: |
-                cd frontend
-                npm install
-                npx eslint . --ext .js,.jsx,.ts,.tsx
-          
-
-
-    # test:    
-    #     runs-on: ubuntu-latest
-
-    # build:
-    #     runs-on: ubuntu-latest
-        
-    # upload_artifacts:
-    #     runs-on: ubuntu-latest
-
-    # deploy:
-    #     runs-on: ubuntu-latest
-
-    # notify:
-    #     runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Cache Backend Dependencies
+        uses: actions/cache@v3
+        with:
+          path: backend/node_modules
+          key: ${{ runner.os }}-backend-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-backend-
+      
+      - name: Cache Frontend Dependencies
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+      
+      - name: Lint Backend Code
+        run: |
+          cd backend
+          npm install
+          npx eslint . --ext .js,.jsx,.ts,.tsx
+      
+      - name: Lint Frontend Code
+        run: |
+          cd frontend
+          npm install
+          npx eslint . --ext .js,.jsx,.ts,.tsx
 
 
-     
+
