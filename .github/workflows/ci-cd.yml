@@ -104,79 +104,79 @@ jobs:
           cd frontend
           vercel --prod --token $VERCEL_TOKEN --yes
 
-  # notify:
-  #   runs-on: ubuntu-latest
-  #   needs: deploy
-  #   if: always()
-  #   steps:
-  #     - name: Notify Discord on Success
-  #       if: needs.deploy.result == 'success'
-  #       run: |
-  #         curl -H "Content-Type: application/json" \
-  #              -X POST \
-  #              -d '{
-  #                "embeds": [{
-  #                  "title": "Deployment Successful",
-  #                  "description": "Both frontend and backend have been deployed successfully!",
-  #                  "color": 3066993,
-  #                  "fields": [
-  #                    {
-  #                      "name": "Backend",
-  #                      "value": "Deployed to Render",
-  #                      "inline": true
-  #                    },
-  #                    {
-  #                      "name": "Frontend", 
-  #                      "value": "Deployed to Vercel",
-  #                      "inline": true
-  #                    },
-  #                    {
-  #                      "name": "Commit",
-  #                      "value": "'${{ github.event.head_commit.message }}'",
-  #                      "inline": false
-  #                    }
-  #                  ],
-  #                  "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"
-  #                }]
-  #              }' \
-  #              ${{ secrets.DISCORDBOT }}
+  notify:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    steps:
+      - name: Notify Discord on Success
+        if: needs.deploy.result == 'success'
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{
+                 "embeds": [{
+                   "title": "Deployment Successful",
+                   "description": "Both frontend and backend have been deployed successfully!",
+                   "color": 3066993,
+                   "fields": [
+                     {
+                       "name": "Backend",
+                       "value": "Deployed to Render",
+                       "inline": true
+                     },
+                     {
+                       "name": "Frontend", 
+                       "value": "Deployed to Vercel",
+                       "inline": true
+                     },
+                     {
+                       "name": "Commit",
+                       "value": "'${{ github.event.head_commit.message }}'",
+                       "inline": false
+                     }
+                   ],
+                   "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"
+                 }]
+               }' \
+               ${{ secrets.DISCORDBOT }}
 
-  #     - name: Notify Discord on Failure
-  #       if: needs.deploy.result == 'failure'
-  #       run: |
-  #         curl -H "Content-Type: application/json" \
-  #              -X POST \
-  #              -d '{
-  #                "embeds": [{
-  #                  "title": "Deployment Failed",
-  #                  "description": "Deployment failed. Please check the logs for details.",
-  #                  "color": 15158332,
-  #                  "fields": [
-  #                    {
-  #                      "name": "Repository",
-  #                      "value": "'${{ github.repository }}'",
-  #                      "inline": true
-  #                    },
-  #                    {
-  #                      "name": "Branch",
-  #                      "value": "'${{ github.ref_name }}'",
-  #                      "inline": true
-  #                    },
-  #                    {
-  #                      "name": "Commit",
-  #                      "value": "'${{ github.event.head_commit.message }}'",
-  #                      "inline": false
-  #                    },
-  #                    {
-  #                      "name": "View Logs",
-  #                      "value": "[Click here]('${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}')",
-  #                      "inline": false
-  #                    }
-  #                  ],
-  #                  "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"
-  #                }]
-  #              }' \
-  #              ${{ secrets.DISCORDBOT }}
+      - name: Notify Discord on Failure
+        if: needs.deploy.result == 'failure'
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{
+                 "embeds": [{
+                   "title": "Deployment Failed",
+                   "description": "Deployment failed. Please check the logs for details.",
+                   "color": 15158332,
+                   "fields": [
+                     {
+                       "name": "Repository",
+                       "value": "'${{ github.repository }}'",
+                       "inline": true
+                     },
+                     {
+                       "name": "Branch",
+                       "value": "'${{ github.ref_name }}'",
+                       "inline": true
+                     },
+                     {
+                       "name": "Commit",
+                       "value": "'${{ github.event.head_commit.message }}'",
+                       "inline": false
+                     },
+                     {
+                       "name": "View Logs",
+                       "value": "[Click here]('${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}')",
+                       "inline": false
+                     }
+                   ],
+                   "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.000Z)'"
+                 }]
+               }' \
+               ${{ secrets.DISCORDBOT }}
 
 
 
