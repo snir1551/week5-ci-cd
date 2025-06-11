@@ -90,7 +90,19 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 **Why Nginx for Frontend?**
-Nginx is a lightweight, high-performance web server, ideal for serving static frontend assets efficiently. The placeholder "we're nginx because ..." can be replaced with a more detailed explanation if desired, such as: "We use Nginx because it is a highly efficient and lightweight web server, perfect for serving the static build artifacts of our frontend application. It offers excellent performance and is a standard choice for this purpose."
+NGINX is a high-performance web server that efficiently serves static files (such as HTML, CSS, and JavaScript).
+In this setup, the React frontend is built into static assets during the Docker build process.
+
+We use a multi-stage Dockerfile:
+- The first stage (build) uses Node.js to compile the React app.
+- The second stage uses NGINX to serve only the optimized build output, resulting in a smaller and more secure production image.
+
+**Benefits of NGINX for Frontend:**
+- Delivers static files much faster and more efficiently than Node.js or most backend servers.
+- Handles thousands of concurrent connections and requests, making it ideal for real-world production environments.
+-Reduces the attack surface by excluding build tools, source code, and development dependencies from the final image.
+-Provides flexibility to add advanced web server features if needed (e.g., caching, custom error pages, URL rewrites, reverse proxy).
+
 
 **Building and Running the Frontend Image:**
 
@@ -158,6 +170,24 @@ networks:
     driver: bridge
 ```
 *(Note: The `container_name` fields were updated for clarity. It's good practice to also include `image` fields with your Docker Hub username and specific tags, e.g., `yourusername/backend-app:1.0.0`, especially when not relying solely on local builds.)*
+
+**What is a network in Docker Compose?**
+* A network is a virtual network that allows all the services (containers) in your application to communicate with each other securely and in isolation from the rest of the host machine or the internet.
+* When services (like backend, frontend, and mongo) are attached to the same network, they can communicate directly using the service name as the hostname (e.g., the backend can connect to the database using mongo:27017).
+* Using a custom network separates your project's internal communication from other containers running on the same machine, helping prevent conflicts and unwanted exposure.
+
+  
+| Network Type | Description                                            | Common Use Case                                   |
+| ------------ | ------------------------------------------------------ | ------------------------------------------------- |
+| **bridge**   | Private network between containers on the same host    | Default. Development, Docker Compose, isolation   |
+| **host**     | Shares the host's network stack directly               | Maximum performance, direct network access        |
+| **none**     | No network interface attached                          | Complete isolation, testing                       |
+| **overlay**  | Virtual network spanning multiple Docker hosts         | Clusters, Docker Swarm, microservices             |
+| **macvlan**  | Each container gets its own MAC/IP on the physical LAN | Integration with legacy networks, external access |
+
+**What is a Docker volume?**
+A Docker volume is a persistent storage mechanism that allows data to survive container restarts, rebuilds, or removals.
+
 
 **Building and Running with Docker Compose:**
 To build the images (if they don't exist or if Dockerfiles/contexts have changed) and start all services:
