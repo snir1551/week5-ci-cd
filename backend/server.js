@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,17 +16,33 @@ app.use((req, res, next) => {
   next();
 });
 
-// In-memory data store for demo
-let users = [
-  { id: 1, name: 'John Doe', email: 'john@example.com' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
-];
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongo:27017/mydatabase', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-let tasks = [
-  { id: 1, title: 'Learn Node.js', completed: false, userId: 1 },
-  { id: 2, title: 'Build React app', completed: true, userId: 1 },
-  { id: 3, title: 'Write tests', completed: false, userId: 2 }
-];
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
+});
+
+// Define Schemas
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+});
+
+const taskSchema = new mongoose.Schema({
+  title: String,
+  completed: Boolean,
+  userId: Number, // Assuming this refers to the in-memory user ID for now
+});
+
+const User = mongoose.model('User', userSchema);
+const Task = mongoose.model('Task', taskSchema);
+
 
 // API Routes
 app.get('/', (req, res) => {
@@ -39,84 +56,109 @@ app.get('/api/health', (req, res) => {
 });
 
 // Users API
-app.get('/api/users', (req, res) => {
-  res.json(users);
-});
-
-app.get('/api/users/:id', (req, res) => {
-  const user = users.find(u => u.id === parseInt(req.params.id));
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+app.get('/api/users', async (req, res) => {
+  console.log('GET /api/users called');
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json(user);
 });
 
-app.post('/api/users', (req, res) => {
+app.get('/api/users/:id', async (req, res) => {
+  console.log(`GET /api/users/${req.params.id} called`);
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  console.log('POST /api/users called');
   const { name, email } = req.body;
   if (!name || !email) {
     return res.status(400).json({ error: 'Name and email are required' });
   }
   
-  const newUser = {
-    id: users.length + 1,
-    name,
-    email
-  };
-  users.push(newUser);
-  res.status(201).json(newUser);
+  try {
+    const newUser = new User({ name, email });
+    await newUser.save();
+    res.status(201).json(newUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Tasks API
-app.get('/api/tasks', (req, res) => {
-  res.json(tasks);
-});
-
-app.get('/api/tasks/:id', (req, res) => {
-  const task = tasks.find(t => t.id === parseInt(req.params.id));
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
+app.get('/api/tasks', async (req, res) => {
+  console.log('GET /api/tasks called');
+  try {
+    const tasks = await Task.find();
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json(task);
 });
 
-app.post('/api/tasks', (req, res) => {
+app.get('/api/tasks/:id', async (req, res) => {
+  console.log(`GET /api/tasks/${req.params.id} called`);
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/tasks', async (req, res) => {
+  console.log('POST /api/tasks called');
   const { title, userId } = req.body;
   if (!title || !userId) {
     return res.status(400).json({ error: 'Title and userId are required' });
   }
   
-  const newTask = {
-    id: tasks.length + 1,
-    title,
-    completed: false,
-    userId
-  };
-  tasks.push(newTask);
-  res.status(201).json(newTask);
+  try {
+    const newTask = new Task({ title, completed: false, userId });
+    await newTask.save();
+    res.status(201).json(newTask);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.put('/api/tasks/:id', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const taskIndex = tasks.findIndex(t => t.id === taskId);
-  
-  if (taskIndex === -1) {
-    return res.status(404).json({ error: 'Task not found' });
+app.put('/api/tasks/:id', async (req, res) => {
+  console.log(`PUT /api/tasks/${req.params.id} called`);
+  try {
+    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  
-  tasks[taskIndex] = { ...tasks[taskIndex], ...req.body };
-  res.json(tasks[taskIndex]);
 });
 
-app.delete('/api/tasks/:id', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const taskIndex = tasks.findIndex(t => t.id === taskId);
-  
-  if (taskIndex === -1) {
-    return res.status(404).json({ error: 'Task not found' });
+app.delete('/api/tasks/:id', async (req, res) => {
+  console.log(`DELETE /api/tasks/${req.params.id} called`);
+  try {
+    const task = await Task.findByIdAndDelete(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    res.json({ message: 'Task deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  
-  tasks.splice(taskIndex, 1);
-  res.json({ message: 'Task deleted successfully' });
 });
 
 // Error handling middleware
