@@ -10,130 +10,134 @@ on:
   workflow_dispatch:
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18, 20]
 
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       
-      - name: Setup Node.js ${matrix.node-version}
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: ${{matrix.node-version}}
-      
+          node-version: ${{ matrix.node-version }}
       
       - name: Test Backend
         run: |
           cd backend
           npm install
-          npm test 
+          npm test
+      
 
-  build:
+
+  build_and_push_docker_images:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18, 20]
     needs: test
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js ${{matrix.node-version}}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{matrix.node-version}}
-      
-      - name: Build Backend
-        run: |
-          cd backend
-          npm install
-          npm run build
-      
-      - name: Build Frontend
-        run: |
-          cd frontend
-          npm install
-          npm run build
 
-      - name: Upload Backend Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-build-${{ matrix.node-version }}
-          path: backend/
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Upload Frontend Build Artifact
-        uses: actions/upload-artifact@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
         with:
-          name: frontend-build-${{ matrix.node-version }}
-          path: frontend/build
-    
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/backend-app:${{ github.sha }}
+
+      - name: Build and push frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/frontend-app:${{ github.sha }}
           
-  deploy:
-    runs-on: ubuntu-latest 
-    needs: build
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  # deploy:
+  #   runs-on: ubuntu-latest 
+  #   needs: build_and_push_docker_images # Or your actual build job if different
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v4
       
-      - name: Download Backend Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-build-18
+  #     # Example: Download artifacts if needed by deployment (not typical if using Docker images from registry)
+  #     # - name: Download Backend Build Artifact 
+  #     #   uses: actions/download-artifact@v4
+  #     #   with:
+  #     #     name: backend-build-18 # Adjust if matrix strategy changes or artifacts are different
 
-      - name: Download Frontend Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build-18
+  #     # - name: Download Frontend Build Artifact
+  #     #   uses: actions/download-artifact@v4
+  #     #   with:
+  #     #     name: frontend-build-18 # Adjust as above
 
-      - name: Deploy Backend to Render
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+  #     - name: Deploy Backend to Render
+  #       run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }} # This would typically pull the new image from Docker Hub
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel
+  #     - name: Install Vercel CLI
+  #       run: npm install -g vercel
 
-      - name: Deploy Frontend to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          cd frontend
-          vercel --prod --token $VERCEL_TOKEN --yes
+  #     - name: Deploy Frontend to Vercel
+  #       env:
+  #         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  #       run: |
+  #         # This deployment might need to be adapted if Vercel is to pull a Docker image
+  #         # Or if it still builds from source, ensure it checks out the correct commit
+  #         cd frontend 
+  #         vercel --prod --token $VERCEL_TOKEN --yes
 
   notify:
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: build_and_push_docker_images # Changed from 'deploy'
     if: always()
     steps:
       - name: Notify Discord on Success
-        if: needs.deploy.result == 'success'
+        if: needs.build_and_push_docker_images.result == 'success' # Changed from 'deploy'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORDBOT }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }} # Pass username for constructing image names
         run: |
           cat <<EOF > payload.json
           {
             "embeds": [{
-              "title": "Deployment Successful",
-              "description": "Both frontend and backend have been deployed successfully!",
+              "title": "CI Pipeline Successful: Docker Images Ready",
+              "description": "Backend and frontend Docker images have been built and pushed to Docker Hub.",
               "color": 3066993,
               "fields": [
                 {
-                  "name": "Backend",
-                  "value": "Deployed to Render",
+                  "name": "Backend Image",
+                  "value": "${DOCKERHUB_USERNAME}/backend-app:${{ github.sha }}",
                   "inline": true
                 },
                 {
-                  "name": "Frontend", 
-                  "value": "Deployed to Vercel",
+                  "name": "Frontend Image", 
+                  "value": "${DOCKERHUB_USERNAME}/frontend-app:${{ github.sha }}",
                   "inline": true
                 },
                 {
                   "name": "Commit",
                   "value": "${{ github.event.head_commit.message }}",
+                  "inline": false
+                },
+                {
+                  "name": "View Workflow Run",
+                  "value": "[Click here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
                   "inline": false
                 }
               ],
@@ -144,15 +148,15 @@ jobs:
           curl -H "Content-Type: application/json" -X POST -d @payload.json "$DISCORD_WEBHOOK"
 
       - name: Notify Discord on Failure
-        if: needs.deploy.result == 'failure'
+        if: needs.build_and_push_docker_images.result == 'failure' # Changed from 'deploy'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORDBOT }}
         run: |
           cat <<EOF > payload.json
           {
             "embeds": [{
-              "title": "Deployment Failed",
-              "description": "Deployment failed. Please check the logs for details.",
+              "title": "CI Pipeline Failed: Docker Build/Push Error",
+              "description": "The Docker image build or push process failed. Please check the logs for details.",
               "color": 15158332,
               "fields": [
                 {
@@ -185,7 +189,7 @@ jobs:
 
 
 
-  
+
 
 
 

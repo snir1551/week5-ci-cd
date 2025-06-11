@@ -2,6 +2,7 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    image: backend-app:1.0.1
     container_name: backend
     ports:
       - "5000:5000"
@@ -15,6 +16,7 @@ services:
 
   frontend:
     build: ./frontend
+    image: frontend-app:1.0.0
     container_name: frontend
     ports:
       - "3000:80"
@@ -25,12 +27,12 @@ services:
 
 
   mongo:
-    image: mongo
+    image: mongo:latest 
     container_name: mongo
     ports:
       - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
+    # volumes:
+    #   - mongo-data:/data/db
     networks:
       - mynet
 
