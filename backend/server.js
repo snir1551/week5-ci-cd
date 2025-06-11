@@ -28,8 +28,12 @@ let tasks = [
 ];
 
 // API Routes
+app.get('/', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running' });
+});
 
 // Health check
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Server is running' });
 });
