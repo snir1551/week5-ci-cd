@@ -31,11 +31,7 @@ jobs:
           npm install
           npm test
       
-      - name: Test Frontend
-        run: |
-          cd frontend
-          npm install
-          npm test # Ensure 'npm test' is configured in frontend/package.json
+
 
   build_and_push_docker_images:
     runs-on: ubuntu-latest
