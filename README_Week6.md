@@ -1,6 +1,5 @@
 # Week 6: CI/CD Pipeline with Docker, Docker Compose, and GitHub Actions
 
-This document details the containerization of a full-stack application (backend and frontend), its orchestration using Docker Compose, and the setup of a Continuous Integration/Continuous Deployment (CI/CD) pipeline with GitHub Actions.
 
 ## Table of Contents
 
