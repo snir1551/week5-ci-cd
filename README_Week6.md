@@ -15,9 +15,8 @@
     *   [Docker Image Tagging](#docker-image-tagging)
 5.  [CI/CD with GitHub Actions](#cicd-with-github-actions)
     *   [Workflow Overview](#workflow-overview)
-    *   [Job: `test`](#job-test)
     *   [Job: `build_and_push_docker_images`](#job-build_and_push_docker_images-1)
-    *   [Job: `notify`](#job-notify)
+    
 
 ## Project Flow Diagram
 
