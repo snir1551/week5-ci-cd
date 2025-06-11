@@ -16,17 +16,38 @@ app.use((req, res, next) => {
   next();
 });
 
-// MongoDB Connection
-// Use a different URI for testing if provided by setup.js
-const MONGODB_URI = process.env.NODE_ENV === 'test' ? process.env.MONGODB_URI_TEST : (process.env.MONGODB_URI || 'mongodb://mongo:27017/mydatabase');
+let server; // Declare server at a higher scope
 
-mongoose.connect(MONGODB_URI);
+// MongoDB Connection and Server Start
+if (process.env.NODE_ENV !== 'test') {
+  const MONGODB_URI_ACTUAL = process.env.MONGODB_URI || 'mongodb://mongo:27017/mydatabase';
 
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', () => {
-  console.log('Connected to MongoDB');
-});
+  if (!MONGODB_URI_ACTUAL) {
+    console.error("MongoDB URI is not defined. Please set MONGODB_URI environment variable for non-test environments.");
+    process.exit(1);
+  }
+
+  mongoose.connect(MONGODB_URI_ACTUAL)
+    .then(() => {
+      console.log('Connected to MongoDB for non-test environment');
+      server = app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('Failed to connect to MongoDB in non-test environment:', err.message);
+      process.exit(1);
+    });
+
+  const db = mongoose.connection;
+  db.on('error', (err) => {
+    console.error('MongoDB runtime connection error (non-test):', err.message);
+  });
+  // The db.once('open') for console logging is covered by the .then() block now.
+}
+// In test mode, mongoose connection is handled by tests/setup.js.
+// The server is not started here; supertest will handle it using the 'app' instance.
+// The mongoose instance used by models in server.js will be the one connected by setup.js.
 
 // Define Schemas
 const userSchema = new mongoose.Schema({
@@ -189,24 +210,4 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Start server only if not in test environment and the Mongoose connection is open
-let server;
-
-const startServer = () => {
-  if (process.env.NODE_ENV !== 'test') {
-    server = app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-  }
-};
-
-if (mongoose.connection.readyState === 1) { // 1 === connected
-  startServer();
-} else {
-  db.once('open', () => {
-    console.log('Connected to MongoDB (server.js listener)');
-    startServer();
-  });
-}
-
-module.exports = { app, server, mongoose }; // Export mongoose for test teardown if needed
+module.exports = { app, server, mongoose };
